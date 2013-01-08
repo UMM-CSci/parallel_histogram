@@ -3,13 +3,18 @@ package histogram;
 public class HistogramBuilder {
     public final int NUM_THREADS = 10;
     
-    public int[] buildHistogram(String string) {
+    public int[] buildHistogram(String string) throws InterruptedException {
         int[] result = new int[128];
+        Thread[] threads = new Thread[NUM_THREADS];
         
         for (int i=0; i<NUM_THREADS; ++i) {
             PartialHistogramBuilder partial = new PartialHistogramBuilder(string, result, i);
-            Thread thread = new Thread(partial);
-            thread.start();
+            threads[i] = new Thread(partial);
+            threads[i].start();
+        }
+        
+        for (int i=0; i<NUM_THREADS; ++i) {
+            threads[i].join();
         }
         
         return result;
@@ -28,8 +33,8 @@ public class HistogramBuilder {
 
         @Override
         public void run() {
-          int start = string.length() / NUM_THREADS * blockNumber;
-          int end = string.length() / NUM_THREADS * (blockNumber + 1);
+          int start = (blockNumber * string.length()) / NUM_THREADS;
+          int end = ((blockNumber + 1) * string.length()) / NUM_THREADS;
           for (int i=start; i<end; ++i) {
               ++result[string.charAt(i)];
           }
