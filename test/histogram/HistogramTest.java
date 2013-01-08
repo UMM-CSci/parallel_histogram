@@ -43,10 +43,10 @@ public class HistogramTest {
         }
         int[] histogram = histogramBuilder.buildHistogram(charsToCount);
         for (char c = 'a'; c <= 'z'; ++c) {
-            assertEquals(1, histogram[c]);
+            assertEquals("Count for '" + c + "' was incorrect.", 1, histogram[c]);
         }
         for (char c = 'A'; c <= 'Z'; ++c) {
-            assertEquals(1, histogram[c]);
+            assertEquals("Count for '" + c + "' was incorrect.", 1, histogram[c]);
         }
     }
     
@@ -58,23 +58,27 @@ public class HistogramTest {
         int[] histogram = histogramBuilder.buildHistogram(text);
         
         for (int i = 0; i<128; ++i) {
-            assertEquals(expectedCounts[i], histogram[i]);
+            assertEquals("Count for '" + ((char) i) + "' was incorrect.", expectedCounts[i], histogram[i]);
         }
     }
+    
     @Test
-    public void testManyXs() throws InterruptedException {
+    public void testManyXs() {
         final int NUM_Xs = 10000000;
         
         StringBuilder builder = new StringBuilder();
         for (int i = 0; i < NUM_Xs; ++i) {
             builder.append('x');
         }
-        long startTime = System.nanoTime();
         int[] histogram = histogramBuilder.buildHistogram(builder.toString());
+        int totalCount = 0;
+        assertEquals(NUM_Xs, histogram['x']);
         for (int i=0; i<128; ++i) {
             if (i != 'x') {
                 assertEquals("Count for '" + ((char) i) + "' wasn't zero as expected.", 0, histogram[i]);
             }
+            totalCount += histogram[i];
         }
+        assertEquals(NUM_Xs, totalCount);
     }
 }

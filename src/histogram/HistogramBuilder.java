@@ -1,7 +1,7 @@
 package histogram;
 
 public class HistogramBuilder {
-
+    
     public int[] buildHistogram(String string) {
         int[] result = new int[128];
         
@@ -11,7 +11,7 @@ public class HistogramBuilder {
         
         return result;
     }
-
+    
     public static void main(String[] args) {
         final int NUM_Xs = 10000000;
         final int NUM_WARMUPS = 10;
@@ -33,6 +33,7 @@ public class HistogramBuilder {
         for (int i=0; i<NUM_RUNS_TO_COUNT; ++i) {
             HistogramBuilder histogramBuilder = new HistogramBuilder();
             histogram = histogramBuilder.buildHistogram(builder.toString());
+            printHistCount(histogram);
         }
         long endTime = System.nanoTime();
         long duration = endTime - startTime;
