@@ -6,9 +6,10 @@ public class HistogramBuilder {
     public int[] buildHistogram(String string) throws InterruptedException {
         int[] result = new int[128];
         Thread[] threads = new Thread[NUM_THREADS];
+        int[][] partialResults = new int[NUM_THREADS][128];
         
         for (int i=0; i<NUM_THREADS; ++i) {
-            PartialHistogramBuilder partial = new PartialHistogramBuilder(string, result, i);
+            PartialHistogramBuilder partial = new PartialHistogramBuilder(string, i, partialResults[i]);
             threads[i] = new Thread(partial);
             threads[i].start();
         }
@@ -17,26 +18,32 @@ public class HistogramBuilder {
             threads[i].join();
         }
         
+        for (int i=0; i<NUM_THREADS; ++i) {
+        	for (char c=0; c<128; ++c) {
+        		result[c] += partialResults[i][c];
+        	}
+        }
+        
         return result;
     }
 
     class PartialHistogramBuilder implements Runnable {
         private String string;
-        private int[] result;
         private int blockNumber;
+		private int[] partialResults;
 
-        public PartialHistogramBuilder(String string, int[] result, int blockNumber) {
+        public PartialHistogramBuilder(String string, int blockNumber, int[] partialResults) {
             this.string = string;
-            this.result = result;
             this.blockNumber = blockNumber;
+            this.partialResults = partialResults;
         }
 
         @Override
         public void run() {
-          int start = (blockNumber * string.length()) / NUM_THREADS;
-          int end = ((blockNumber + 1) * string.length()) / NUM_THREADS;
+          int start = (int) ((blockNumber * (long) string.length()) / NUM_THREADS);
+          int end = (int) (((blockNumber + 1) * (long) string.length()) / NUM_THREADS);
           for (int i=start; i<end; ++i) {
-              ++result[string.charAt(i)];
+              ++partialResults[string.charAt(i)];
           }
         }
     }
