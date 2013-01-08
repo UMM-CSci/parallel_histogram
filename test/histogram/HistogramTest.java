@@ -72,10 +72,14 @@ public class HistogramTest {
             builder.append('x');
         }
         int[] histogram = histogramBuilder.buildHistogram(builder.toString());
+        int totalCount = 0;
+        assertEquals(NUM_Xs, histogram['x']);
         for (int i=0; i<128; ++i) {
             if (i != 'x') {
                 assertEquals("Count for '" + ((char) i) + "' wasn't zero as expected.", 0, histogram[i]);
             }
+            totalCount += histogram[i];
         }
+        assertEquals(NUM_Xs, totalCount);
     }
 }
