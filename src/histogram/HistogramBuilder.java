@@ -1,14 +1,21 @@
 package histogram;
 
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 public class HistogramBuilder {
     public final int NUM_THREADS = 10;
     
     public int[] buildHistogram(String string) throws InterruptedException {
         int[] result = new int[128];
+        Lock[] locks = new ReentrantLock[128];
+        for (int i=0; i<locks.length; ++i) {
+        	locks[i] = new ReentrantLock();
+        }
         Thread[] threads = new Thread[NUM_THREADS];
         
         for (int i=0; i<NUM_THREADS; ++i) {
-            PartialHistogramBuilder partial = new PartialHistogramBuilder(string, result, i);
+            PartialHistogramBuilder partial = new PartialHistogramBuilder(string, result, i, locks);
             threads[i] = new Thread(partial);
             threads[i].start();
         }
@@ -24,11 +31,13 @@ public class HistogramBuilder {
         private String string;
         private int[] result;
         private int blockNumber;
+		private Lock[] locks;
 
-        public PartialHistogramBuilder(String string, int[] result, int blockNumber) {
+        public PartialHistogramBuilder(String string, int[] result, int blockNumber, Lock[] locks) {
             this.string = string;
             this.result = result;
             this.blockNumber = blockNumber;
+            this.locks = locks;
         }
 
         @Override
@@ -36,7 +45,13 @@ public class HistogramBuilder {
           int start = (blockNumber * string.length()) / NUM_THREADS;
           int end = ((blockNumber + 1) * string.length()) / NUM_THREADS;
           for (int i=start; i<end; ++i) {
-              ++result[string.charAt(i)];
+        	  int c = string.charAt(i);
+        	  locks[c].lock();  // block until condition holds
+        	  try {
+                  ++result[c];
+        	  } finally {
+        		  locks[c].unlock();
+        	  }
           }
         }
     }
