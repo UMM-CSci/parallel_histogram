@@ -61,4 +61,20 @@ public class HistogramTest {
             assertEquals(expectedCounts[i], histogram[i]);
         }
     }
+    @Test
+    public void testManyXs() throws InterruptedException {
+        final int NUM_Xs = 10000000;
+        
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < NUM_Xs; ++i) {
+            builder.append('x');
+        }
+        long startTime = System.nanoTime();
+        int[] histogram = histogramBuilder.buildHistogram(builder.toString());
+        for (int i=0; i<128; ++i) {
+            if (i != 'x') {
+                assertEquals("Count for '" + ((char) i) + "' wasn't zero as expected.", 0, histogram[i]);
+            }
+        }
+    }
 }
