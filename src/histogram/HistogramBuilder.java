@@ -66,7 +66,7 @@ public class HistogramBuilder {
         }
         long endTime = System.nanoTime();
         long duration = endTime - startTime;
-        System.out.println("Generating the histograms took " + (duration / 1000000000.0) + " seconds.");
+        System.out.println("\nGenerating the histograms took " + (duration / 1000000000.0) + " seconds.");
     }
 
     private static void printHistCount(int[] histogram) {
@@ -74,6 +74,7 @@ public class HistogramBuilder {
         for (int i=0; i<histogram.length; ++i) {
             count += histogram[i];
         }
-        System.out.println("The total number of counts was " + count + ".");
+        System.out.print('.');
+//        System.out.println("The total number of counts was " + count + ".");
     }
 }
