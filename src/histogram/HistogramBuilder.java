@@ -42,7 +42,7 @@ public class HistogramBuilder {
     }
     
     public static void main(String[] args) throws InterruptedException {
-        final int NUM_Xs = 10000000;
+        final int NUM_Xs = 50000000;
         final int NUM_WARMUPS = 10;
         final int NUM_RUNS_TO_COUNT = 100;
         
