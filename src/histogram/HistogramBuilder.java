@@ -1,15 +1,18 @@
 package histogram;
 
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 public class HistogramBuilder {
     public final int NUM_THREADS = 10;
     
     public int[] buildHistogram(String string) throws InterruptedException {
         int[] result = new int[128];
         Thread[] threads = new Thread[NUM_THREADS];
-        int[][] partialResults = new int[NUM_THREADS][128];
+        Lock resultLock = new ReentrantLock();
         
         for (int i=0; i<NUM_THREADS; ++i) {
-            PartialHistogramBuilder partial = new PartialHistogramBuilder(string, i, partialResults[i]);
+            PartialHistogramBuilder partial = new PartialHistogramBuilder(string, i, result, resultLock);
             threads[i] = new Thread(partial);
             threads[i].start();
         }
@@ -18,24 +21,22 @@ public class HistogramBuilder {
             threads[i].join();
         }
         
-        for (int i=0; i<NUM_THREADS; ++i) {
-        	for (char c=0; c<128; ++c) {
-        		result[c] += partialResults[i][c];
-        	}
-        }
-        
         return result;
     }
 
     class PartialHistogramBuilder implements Runnable {
         private String string;
         private int blockNumber;
+        private Lock resultLock;
+        private int[] result;
 		private int[] partialResults;
 
-        public PartialHistogramBuilder(String string, int blockNumber, int[] partialResults) {
+        public PartialHistogramBuilder(String string, int blockNumber, int[] result, Lock resultLock) {
             this.string = string;
             this.blockNumber = blockNumber;
-            this.partialResults = partialResults;
+            this.resultLock = resultLock;
+            this.result = result;
+            partialResults = new int[result.length];
         }
 
         @Override
@@ -44,6 +45,14 @@ public class HistogramBuilder {
           int end = (int) (((blockNumber + 1) * (long) string.length()) / NUM_THREADS);
           for (int i=start; i<end; ++i) {
               ++partialResults[string.charAt(i)];
+          }
+          resultLock.lock();  // block until condition holds
+          try {
+            for (int i=0; i<result.length; ++i) {
+            	result[i] += partialResults[i];
+            }
+          } finally {
+        	  resultLock.unlock();
           }
         }
     }
